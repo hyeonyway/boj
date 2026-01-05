@@ -31,12 +31,17 @@ jobs:
         env:
           ORG_REPO: git@github.com:SKALA-Cloud-team-2/algorithm-study.git
           USERNAME: ${{ github.actor }}
+          BRANCH: user/${{ github.actor }}
         run: |
           git clone $ORG_REPO algorithm-study
           cd algorithm-study
 
-          # 내 전용 브랜치 (없으면 생성)
-          git checkout -B user/$USERNAME
+          git fetch origin
+
+          # remote branch로 이동 없으면 복사
+          if git show-ref --verify --quiet refs/remotes/origin/$BRANCH; then
+            git checkout -B BRANCH origin/BRANCH
+          fi
 
           # 내 풀이만 복사 (충돌 방지)
           mkdir -p solutions/$USERNAME
