@@ -40,7 +40,7 @@ jobs:
 
           # remote branch로 이동 없으면 복사
           if git show-ref --verify --quiet refs/remotes/origin/$BRANCH; then
-            git checkout -B BRANCH origin/BRANCH
+            git checkout -B $BRANCH origin/$BRANCH
           fi
 
           # 내 풀이만 복사 (충돌 방지)
