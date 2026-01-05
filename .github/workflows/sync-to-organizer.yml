@@ -1,0 +1,45 @@
+name: CI and Sync to Organizer
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  ci-sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ 내 레포 체크아웃
+      - name: Checkout my repository
+        uses: actions/checkout@v4
+
+      # 3️⃣ SSH 설정 (Deploy Key)
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.ORGANIZER_DEPLOY_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+      # 4️⃣ organizer 레포로 동기화 (내 브랜치)
+      - name: Sync to organizer repository
+        env:
+          ORG_REPO: git@github.com:SKALA-Cloud-team-2/algorithm-study.git
+          USERNAME: ${{ github.actor }}
+        run: |
+          git clone $ORG_REPO organizer-repo
+          cd organizer-repo
+
+          # 내 전용 브랜치 (없으면 생성)
+          git checkout -B user/$USERNAME
+
+          # 내 풀이만 복사 (충돌 방지)
+          mkdir -p solutions/$USERNAME
+          rsync -av --delete \
+            $GITHUB_WORKSPACE/백준/ \
+            solutions/$USERNAME/
+
+          git add solutions/$USERNAME
+
+          git commit -m "sync: update solutions from $USERNAME" || exit 0
+          git push origin user/$USERNAME
