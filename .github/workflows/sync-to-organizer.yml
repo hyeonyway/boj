@@ -20,6 +20,11 @@ jobs:
           echo "${{ secrets.ORGANIZER_DEPLOY_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan github.com >> ~/.ssh/known_hosts
+          
+      - name: Setup whoami
+        run: |
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
 
       # 4️⃣ organizer 레포로 동기화 (내 브랜치)
       - name: Sync to organizer repository
