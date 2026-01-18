@@ -40,7 +40,12 @@ jobs:
 
           # remote branch로 이동 없으면 복사
           if git show-ref --verify --quiet refs/remotes/origin/$BRANCH; then
+            # origin에 존재하면 그 브랜치를 그대로 가져옴
             git checkout -B $BRANCH origin/$BRANCH
+          else
+            # origin에 없으면 main 기준으로 새 브랜치 생성
+            git checkout -B $BRANCH main
+            git push -u origin $BRANCH
           fi
 
           # 내 풀이만 복사 (충돌 방지)
