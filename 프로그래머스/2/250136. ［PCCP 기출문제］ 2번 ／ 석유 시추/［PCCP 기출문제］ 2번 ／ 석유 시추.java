@@ -1,67 +1,69 @@
 import java.util.*;
 
 class Solution {
-    public static int[] arr;
-    public static boolean[][] visited;
-    public static int max = 0;
-    public static int[] di = new int[]{1, -1, 0, 0};
-    public static int[] dj = new int[]{0, 0, 1, -1};
-    public static int xLen, yLen;
+    static int[][] oilGroup;
+    static int n, m;
+    static int[] di = {-1, 1, 0, 0};
+    static int[] dj = {0, 0, -1, 1};
     public int solution(int[][] land) {
-        xLen = land[0].length;
-        yLen = land.length;
-        arr = new int[xLen];
-        visited = new boolean[yLen][xLen];
-        // return xLen;
-        for(int i = 0; i < yLen; i++) {
-            for(int j = 0; j < xLen; j++) {
-                if(land[i][j] == 1 && !visited[i][j]) {
-                    dfs(i, j, land);
+        int answer = 0;
+        int groupId = 1;
+        n = land.length;
+        m = land[0].length;
+        oilGroup = new int[n][m];
+        Map<Integer, Integer> oilMap = new HashMap<>();
+        // 1. bfs로 석유 덩어리 그룹화
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                if(land[i][j] == 1 && oilGroup[i][j] == 0) {
+                    oilMap.put(groupId, bfs(i, j, land, groupId));
+                    groupId++;
                 }
             }
         }
         
-        for(int i = 1; i < xLen; i++) {
-            arr[i] += arr[i-1];
-            max = Math.max(max, arr[i]);
+        // 2. 각 열마다 돌면서 set에 그룹 저장
+        for(int j = 0; j < m; j++) {
+            Set<Integer> groupSet = new HashSet<>();
+            for(int i = 0; i < n; i++) {
+                if(land[i][j] == 1) {
+                    groupSet.add(oilGroup[i][j]);
+                }
+            }
+            // 3. 저장된 그룹의 총합과 최대값 비교
+            int sum = 0;
+            for(int group: groupSet) {
+                sum += oilMap.get(group);
+            }
+            answer = Math.max(sum, answer);
         }
-        
-        return max;
+        return answer;
     }
     
-    public void dfs(int x, int y, int[][] land) {
-        ArrayDeque<int[]> q = new ArrayDeque<>();
+    public int bfs(int i, int j, int[][] land, int groupId) {
+        Deque<int[]> dq = new ArrayDeque<>();
         int cnt = 1;
-        int xMin = xLen;
-        int xMax = 0;
-        
-        q.add(new int[]{x, y});
-        visited[x][y] = true;
-        
-        while(!q.isEmpty()) {
-            int[] cur = q.poll();
+        dq.add(new int[]{i, j});
+        oilGroup[i][j] = groupId;
+        while(!dq.isEmpty()) {
+            int[] cur = dq.pop();
             int ci = cur[0];
             int cj = cur[1];
-            xMin = Math.min(xMin, cj);
-            xMax = Math.max(xMax, cj);
-            for(int i = 0; i < 4; i++) {
-                int ni = ci + di[i];
-                int nj = cj + dj[i];
-                
-                if(ni < 0 || ni >= yLen || nj < 0 || nj >= xLen) {
+            for(int k = 0; k < 4; k++) {
+                int ni = ci + di[k];
+                int nj = cj + dj[k];
+                if(ni < 0 || ni >= n || nj < 0 || nj >= m) {
                     continue;
                 }
-                if(visited[ni][nj] || land[ni][nj] == 0) {
+                if(oilGroup[ni][nj] != 0 || land[ni][nj] == 0) {
                     continue;
                 }
-                q.add(new int[]{ni, nj});
-                visited[ni][nj] = true;
+                oilGroup[ni][nj] = groupId;
+                dq.add(new int[]{ni, nj});
                 cnt++;
             }
+            
         }
-        arr[xMin] += cnt;
-        if(xMax + 1 < xLen) {
-            arr[xMax + 1] -= cnt;
-        }
+        return cnt;
     }
 }
